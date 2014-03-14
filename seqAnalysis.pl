@@ -30,7 +30,7 @@ $CFTR_WT = "TGTTCTCAGTTTTCCTGGATTATGCCTGGCACCATTAA"
             + "TGTTTCCTATGATGAATATAGATACAGAAGCGTCATCAAAGCATGCCA";
 
 # Desired product post-mutation
-$CFTR_mut_interest = "GGAGAACATTATCTTTGG";      # Mutation portion of interest (same as mouse)
+$CFTR_mut_interest = "two en";      # Mutation portion of interest (same as mouse)
 $CFTR_mut = "TGTTCTCAGTTTTCCTGGATTATGCCTGGCACCATTAA"
             + $CFTR_mut_interest
             + "TGTTTCCTATGATGAATATAGATACAGAAGCGTCATCAAAGCATGCCA";

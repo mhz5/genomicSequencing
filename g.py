@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import time
+from copy import copy
 
 # Bar codes for identifying relevant lines
 chr4bar1	= "GAGCGA"
@@ -10,7 +11,7 @@ CFTRbar2	= "CGTGGC"
 MCFTRbar1	= "TGCGTA"
 MCFTRbar2	= "TTCTGG"
 
-# ==== Begin sequence constants ====
+# === Begin sequence constants ===
 
 # CFTR (what does WT stand for??)
 interestCFTR = "AGAAAATATCATTGG"      # Portion of interest (same as mouse)
@@ -48,22 +49,59 @@ origChr4  = "TTCTACTAAAAGAAAACTTCTGTGTCCTA"
 origChr4 += interestChr4 
 origChr4 += "ATGATAAATGTTAAATAACGTCTTGTTTGCATTAAGTCTGTGGGATG"
 
-# ==== End sequence constants ====
+# === End sequence constants ===
 
-# ==== Utility functions ====
+# === Begin output variables ===
+# countCFTR 		:
+# countMutCFTR 		:
+# countNoMatchCFTR 	:
+# mutOrigCFTR     	:
+# flankOrigCFTR 	:
+# mutMutCFTR 		:
+# flankMutCFTR 		:
+
+# countMCFTR 		:
+# countMutMCFTR 	:
+# countNoMatchMCFTR :
+# mutOrigMCFTR  	:
+# flankOrigMCFTR 	:
+# mutMutMCFTR   	:
+# flankMutMCFTR 	:
+
+# countChr4      	:
+# mutChr4 			:
+# flankChr4 		:
+# noMatchChr4    	:
+
+class E:
+	CFTR 	= 0
+	MCFTR 	= 1
+	CHR4 	= 2
+
+statList = {'mutInterest': "", 'total': 0, 'unmut': 0, 'mut': 0, 'noMatch': 0, 'mutOrig': 0, 'flankOrig': 0, 'mutMut': 0, 'flankMut': 0}
+
+var = {E.CFTR: copy(statList), E.MCFTR: copy(statList), E.CHR4: copy(statList)}
+
+var[E.CFTR]['mutInterest'] = mutInterestCFTR
+var[E.MCFTR]['mutInterest'] = mutInterestMouse
+var[E.CHR4]['mutInterest'] = interestChr4
+
+# === End output variables ===
+
+# === Utility functions ===
 
 # This is a huge drain.
 def strMatches(a, b):
 	if a == b:
 		return len(a)
 	minLen = min(len(a), len(b))
-	res = 0
+	res 
 	for i in range(0, minLen):
 		if a[i] == b[i]:
 			res += 1
 	return res
 
-# Return => match score of two sequences of same length
+# Return > match score of two sequences of same length
 # If not same length, only process up to the length of the shorter sequence.
 def matchScore(seq1, seq2):
 	match = 1 		# match
@@ -72,18 +110,18 @@ def matchScore(seq1, seq2):
 
 	n = min(len(seq1), len(seq2))
 	# Initialize dynamic programming array
-	arr = [[0 for j in range(n)] for i in range(n)]
+	arr = [[0 for j in range(n + 1)] for i in range(n + 1)]
 
 	maxScore = 0
 
 	# Fill in array
-	for i in range(1, n):
+	for i in range(1, n + 1):
 		# Only consider a slice of width 6 to save time.
-		for j in range(max(1, i - 3), min(n, i + 3)):
+		for j in range(max(1, i - 3), min(n + 1, i + 3)):
 			
 			diag = arr[i - 1][j - 1]	# match/mismatch case
 
-			if seq1[i] == seq2[j]:	# match
+			if seq1[i - 1] == seq2[j - 1]:	# match
 				diag += match
 			else:					# mismatch
 				diag += mismatch
@@ -96,10 +134,28 @@ def matchScore(seq1, seq2):
 			maxScore = max(maxScore, arr[i][j])
 	
 	return maxScore
-	
-# ==== End Utility functions ====
 
-infile = open("Sample_021714-1_005/021714-1_005_ACAGTG_L001_R1_001.fastq", "r")
+# Return => void
+# Primary processing function
+def process(line, exp, start, end, scoreThresh):
+	var[exp]['total'] += 1
+	interest = line[start:end]
+
+	score = matchScore(interest, var[exp]['mutInterest'])
+	
+	if score > scoreThresh:
+		print "cool region: " + interest
+		print "actual     : " + var[exp]['mutInterest']
+		print score
+		print exp
+		var[exp]['mut'] += 1
+	else:
+		var[exp]['unmut'] += 1
+
+
+# === End Utility functions ===
+
+infile = open("Sample_021714-1_005/021714-1_005_ACAGTG_L001_R1_003.fastq", "r")
 
 startTime = time.time()
 
@@ -113,8 +169,9 @@ CFTRbar2	= "CGTGGC"
 MCFTRbar1	= "TGCGTA"
 MCFTRbar2	= "TTCTGG"
 
-mouse = 0
-count = 0
+mice = 0
+mutMice = 0
+unmutMice = 0
 
 for line in infile:
 	bar = line[0:6]
@@ -128,23 +185,17 @@ for line in infile:
 	# CFTR
 	if (bar == CFTRbar1 or
 		bar == CFTRbar2):
-		continue
+		process(line, E.CFTR, 38 + 6, 62, 8)	# errors
 	
 	# Mouse
-	if (bar == MCFTRbar1 > 4 or
-		bar == MCFTRbar2 > 4):
-		mouse += 1
-		if line[38:58].find("GGAGAACATTAT") > 0:
-			print count
-			print line
-			count += 1
-
-
-
+	if (bar == MCFTRbar1 or
+		bar == MCFTRbar2):
+		process(line, E.MCFTR, 40 + 6, 64, 13)
 
 	
 print "\n\n\n======================"
-print "Total mouse: " + str(mouse)
-print "Mutated: " + str(count)
+# print "Total mouse: " + str(mouse)
+# print "Mutated    : " + str(count)
+# print "Unmutated  : " + str(count)
 print "Total time:"
 print time.time() - startTime

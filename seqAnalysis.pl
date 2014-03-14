@@ -30,7 +30,7 @@ $CFTR_WT = "TGTTCTCAGTTTTCCTGGATTATGCCTGGCACCATTAA"
             + "TGTTTCCTATGATGAATATAGATACAGAAGCGTCATCAAAGCATGCCA";
 
 # Desired product post-mutation
-$CFTR_mut_interest = "two en";      # Mutation portion of interest (same as mouse)
+$CFTR_mut_interest = "GGAGAACATTATCTTTGG";      # Mutation portion of interest (same as mouse)
 $CFTR_mut = "TGTTCTCAGTTTTCCTGGATTATGCCTGGCACCATTAA"
             + $CFTR_mut_interest
             + "TGTTTCCTATGATGAATATAGATACAGAAGCGTCATCAAAGCATGCCA";
@@ -75,10 +75,12 @@ my $CFTR_mut_flanking_mutation_count = 0;
 my $MCFTR_WT_count = 0;                     # non-mutated MCFTR
 my $MCFTR_mut_count = 0;                    # mutated MCFTR
 my $MCFTR_nomatch_count = 0;                # no match
-my $MCFTR_WT_interest_mutation_count = 0;   # total mutations among NON-mutated MCFTR???
-my $MCFTR_WT_flanking_mutation_count = 0;
-my $MCFTR_mut_interest_mutation_count = 0;  # additional mutations to mutated sequences
-my $MCFTR_mut_flanking_mutation_count = 0;
+
+my $MCFTR_WT_interest_mutation_count = 0;   # total mutations within region of interest
+my $MCFTR_WT_flanking_mutation_count = 0;   # total mutations within flanking regions
+
+my $MCFTR_mut_interest_mutation_count = 0;  # total mutations within region of interest of mutated.
+my $MCFTR_mut_flanking_mutation_count = 0;  # total mutations within flanking regions of mutated.
 
 #====
 
@@ -158,8 +160,8 @@ while (my $header = <$infile>) {
 			my $WT_full_align_score = countStringMatches($full_align1,$full_align2);
 			
 
-            $CFTR_WT_flanking_mutation_count += ((length($CFTR_WT) - $WT_full_align_score)  # num differences between original and curSeq
-                                            - (length($CFTR_WT_interest) - $WT_align_score));
+            $CFTR_WT_flanking_mutation_count += ((length($CFTR_WT) - $WT_full_align_score)  # Total mutations
+                                            - (length($CFTR_WT_interest) - $WT_align_score)); # Mutations in portion of interest
 		}
         
         elsif ($WT_align_score >= (length($CFTR_mut_interest) - 2)) { # mut match

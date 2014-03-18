@@ -52,39 +52,30 @@ origChr4 += "ATGATAAATGTTAAATAACGTCTTGTTTGCATTAAGTCTGTGGGATG"
 # === End sequence constants ===
 
 # === Begin output variables ===
-# countCFTR 		:
-# countMutCFTR 		:
-# countNoMatchCFTR 	:
-# mutOrigCFTR     	:
-# flankOrigCFTR 	:
-# mutMutCFTR 		:
-# flankMutCFTR 		:
 
-# countMCFTR 		:
-# countMutMCFTR 	:
-# countNoMatchMCFTR :
-# mutOrigMCFTR  	:
-# flankOrigMCFTR 	:
-# mutMutMCFTR   	:
-# flankMutMCFTR 	:
-
-# countChr4      	:
-# mutChr4 			:
-# flankChr4 		:
-# noMatchChr4    	:
-
+# Enum to hold experiment types.
 class E:
 	CFTR 	= 0
 	MCFTR 	= 1
 	CHR4 	= 2
 
-statList = {'mutInterest': "", 'total': 0, 'unmut': 0, 'mut': 0, 'noMatch': 0, 'mutOrig': 0, 'flankOrig': 0, 'mutMut': 0, 'flankMut': 0}
+statList = {'mutInterest': "",	# Portion to be replaced.
+			'total': 0,			# Total num of sequences from specified experiment.
+			'unmut': 0,			# Unmutated sequences.
+			'mut': 0,			# Mutated sequences.
+			'noMatch': 0,		# No match sequences.
+			'mutOrig': 0,		# Num mutations in original portion of interest.
+			'flankOrig': 0,		# Num mutations in original flanking regions.
+			'mutMut': 0,		# Num mutations in MUTATED portion of interest.
+			'flankMut': 0 		# Num mutations in MUTATED flanking regions.
+			}
 
+# Object holding analysis variables.
 var = {E.CFTR: copy(statList), E.MCFTR: copy(statList), E.CHR4: copy(statList)}
 
-var[E.CFTR]['mutInterest'] = mutInterestCFTR
+var[E.CFTR]['mutInterest'] 	= mutInterestCFTR
 var[E.MCFTR]['mutInterest'] = mutInterestMouse
-var[E.CHR4]['mutInterest'] = interestChr4
+var[E.CHR4]['mutInterest'] 	= interestChr4
 
 # === End output variables ===
 
@@ -155,7 +146,7 @@ def process(line, exp, start, end, scoreThresh):
 
 # === End Utility functions ===
 
-infile = open("Sample_021714-1_005/021714-1_005_ACAGTG_L001_R1_003.fastq", "r")
+infile = open("Sample_021714-1_005/021714-1_005_ACAGTG_L001_R1_001.fastq", "r")
 
 startTime = time.time()
 
@@ -180,7 +171,7 @@ for line in infile:
 	# 	strMatches(bar, chr4bar2) > 4):
 	if (bar == chr4bar1 or
 		bar == chr4bar2):
-		continue
+		process(line, E.CHR4, 29 + 6, 76, 10)
 
 	# CFTR
 	if (bar == CFTRbar1 or
@@ -194,8 +185,29 @@ for line in infile:
 
 	
 print "\n\n\n======================"
-# print "Total mouse: " + str(mouse)
-# print "Mutated    : " + str(count)
-# print "Unmutated  : " + str(count)
-print "Total time:"
+
+print "CFTR total: " + str(var[E.CFTR]['total'])
+print "CFTR mutated: " + str(var[E.CFTR]['mut'])
+print "CFTR no-match: " + str(var[E.CFTR]['noMatch'])
+print "CFTR ROI mutations (original): " + str(var[E.CFTR]['mutOrig'])
+print "CFTR flanking mutations (original): " + str(var[E.CFTR]['flankOrig'])
+print "CFTR ROI mutations (mutated): " + str(var[E.CFTR]['mutMut'])
+print "CFTR flanking mutations (mutated): " + str(var[E.CFTR]['flankMut'])
+
+print "MCFTR total: " + str(var[E.MCFTR]['total'])
+print "MCFTR mutated: " + str(var[E.MCFTR]['mut'])
+print "MCFTR no-match: " + str(var[E.MCFTR]['noMatch'])
+print "MCFTR ROI mutations (original): " + str(var[E.MCFTR]['mutOrig'])
+print "MCFTR flanking mutations (original): " + str(var[E.MCFTR]['flankOrig'])
+print "MCFTR ROI mutations (mutated): " + str(var[E.MCFTR]['mutMut'])
+print "MCFTR flanking mutations (mutated): " + str(var[E.MCFTR]['flankMut'])
+
+print "Chr4 total: " + str(var[E.CHR4]['total'])
+print "CHR4 mutated: " + str(var[E.CHR4]['mut'])
+print "Chr4 ROI mutations: " + str(var[E.CHR4]['mutOrig'])
+print "Chr4 flanking mutations: " + str(var[E.CHR4]['flankOrig'])
+print "Chr4 no-match: " + str(var[E.CHR4]['noMatch'])
+
+
+print "Total time: "
 print time.time() - startTime
